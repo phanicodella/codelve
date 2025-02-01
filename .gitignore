@@ -1,0 +1,120 @@
+# CodeLve .gitignore
+
+# Build directories
+/build/
+**/build/
+**/x64/
+**/out/
+**/bin/
+**/Debug/
+**/Release/
+
+# CMake generated files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+*.cmake
+!CMakeLists.txt
+!*/cmake/*.cmake
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Visual Studio files
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.sln
+*.suo
+*.user
+*.userosscache
+*.sdf
+*.opensdf
+*.VC.db
+*.VC.opendb
+*.vs/
+*.vscode/
+*.recipe
+ipch/
+*.ipch
+
+# Build logs
+*.log
+*.tlog
+vcpkg.applocal.log
+
+# Model files (potentially large)
+/models/*.bin
+/models/*.gguf
+/models/*.ggml
+
+# Generated files
+ftree.txt
+*.generated.*
+
+# Dependencies that should be downloaded
+/external/*
+!/external/.gitkeep
+
+# macOS specific
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows specific
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Python related (for scripts)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Temporary files
+*.swp
+*~
+*.bak
+*.tmp
