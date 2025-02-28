@@ -107,6 +107,7 @@ namespace codelve {
             setStatus("Loading codebase from: " + directoryPath);
 
             // Show progress dialog in UI
+            HWND progressDialogHandle = nullptr;
             if (mainWindow_) {
                 progressDialogHandle = mainWindow_->showProgressDialog("Loading Codebase", "Scanning files...");
             }
