@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="CMakeSettings">
+    <configurations>
+      <configuration PROFILE_NAME="Debug" ENABLED="true" GENERATION_DIR="build" CONFIG_NAME="Debug" GENERATION_OPTIONS="-G &quot;Visual Studio 17 2022&quot; -A x64" />
+    </configurations>
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="8b3ebf1d-0986-489d-a43c-35a9af7e5964" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/.idea.CodeLve.dir/.idea/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/.idea.CodeLve.dir/.idea/encodings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.bat" beforeDir="false" afterPath="$PROJECT_DIR$/build.bat" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/core/engine.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/core/engine.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/llm/llm_interface.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/llm/llm_interface.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/utils/logger.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/utils/logger.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/utils/logger.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/utils/logger.h" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ClangdSettings">
+    <option name="formatViaClangd" value="false" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectId" id="2te7U5loH7jm3MsBKfdsP1ePWuh" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.cidr.known.project.marker": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "cf.first.check.clang-format": "false",
+    "cidr.known.project.marker": "true",
+    "ignore.virus.scanning.warn.message": "true",
+    "last_opened_file_path": "E:/CodeLve/build",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "settings.editor.selected.configurable": "CMakeSettings",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="8b3ebf1d-0986-489d-a43c-35a9af7e5964" name="Changes" comment="" />
+      <created>1740700700149</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1740700700149</updated>
+      <workItem from="1740700701631" duration="945000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
+  </component>
+</project>

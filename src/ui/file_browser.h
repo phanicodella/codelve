@@ -107,7 +107,7 @@ private:
     void populateTreeView();
     void addDirectoryToTree(HTREEITEM parentItem, const std::string& path);
     int getIconIndexForFile(const std::string& filePath);
-    std::string getItemPath(HTREEITEM item);
+    std::string getItemPath(HTREEITEM item) const;
     void handleItemSelect(HTREEITEM item);
     void handleOpenButtonClick();
     

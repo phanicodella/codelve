@@ -1,64 +1,76 @@
-// E:\codelve\src\utils\logger.h
+// E:\CodeLve\src\utils\logger.h
 #pragma once
+
+// Undef Windows ERROR macro if it's defined
+#ifdef ERROR
+#undef ERROR
+#endif
+
 #include <string>
-#include <fstream>
 #include <iostream>
+#include <fstream>
 #include <mutex>
+#include <algorithm>
 
 namespace codelve {
-namespace utils {
+    namespace utils {
+        // Define log levels
+        enum class LogLevel {
+            DEBUG,
+            INFO,
+            WARNING,
+            ERROR,
+            FATAL
+        };
 
-// Log levels
-enum class LogLevel {
-    DEBUG,
-    INFO,
-    WARNING,
-    ERROR,
-    FATAL
-};
+        class Logger {
+        public:
+            static Logger& getInstance();
 
-// Simple logging utility
-class Logger {
-public:
-    // Initialize the logger
-    static bool initialize(const std::string& logDir);
-    
-    // Log a message
-    static void log(LogLevel level, const std::string& message);
-    
-    // Set the minimum log level
-    static void setLogLevel(LogLevel level);
-    
-    // Set the minimum log level from string
-    static void setLogLevel(const std::string& level);
-    
-    // Convenience logging methods
-    static void debug(const std::string& message);
-    static void info(const std::string& message);
-    static void warning(const std::string& message);
-    static void error(const std::string& message);
-    static void fatal(const std::string& message);
+            // Core logging methods
+            void log(LogLevel level, const std::string& message);
+            void setLogFile(const std::string& logFile);
+            void setLogLevel(LogLevel minLevel);
 
-private:
-    static LogLevel minLevel_;
-    static std::string logDir_;
-    static std::string logFilePath_;
-    static std::ofstream logFile_;
-    static std::mutex mutex_;
-    static bool initialized_;
-    
-    // Convert log level to string
-    static std::string levelToString(LogLevel level);
-    
-    // Convert string to log level
-    static LogLevel stringToLevel(const std::string& level);
-};
+            // Static versions
+            static void setLogLevel(const std::string& level);
+            static bool initialize(const std::string& logDir);
 
-// Convenience macros for logging
-#define LOG_DEBUG(message) codelve::utils::Logger::debug(message)
-#define LOG_INFO(message) codelve::utils::Logger::info(message)
-#define LOG_WARNING(message) codelve::utils::Logger::warning(message)
-#define LOG_ERROR(message) codelve::utils::Logger::error(message)
-#define LOG_FATAL(message) codelve::utils::Logger::fatal(message)
+            // Instance convenience methods
+            void debug(const std::string& message);
+            void info(const std::string& message);
+            void warning(const std::string& message);
+            void error(const std::string& message);
+            void fatal(const std::string& message);
 
-}} // namespace codelve::utils
+            // Static convenience methods
+            static void staticLog(LogLevel level, const std::string& message);
+            static void staticDebug(const std::string& message);
+            static void staticInfo(const std::string& message);
+            static void staticWarning(const std::string& message);
+            static void staticError(const std::string& message);
+            static void staticFatal(const std::string& message);
+
+        private:
+            // Private constructor and destructor for singleton
+            Logger();
+            ~Logger();
+
+            // Member variables
+            std::mutex logMutex_;
+            std::ofstream logFile_;
+            std::string logFilePath_;
+            LogLevel minLevel_;
+
+            // Helper methods
+            std::string levelToString(LogLevel level);
+        };
+
+        // Macro helpers for logging
+#define LOG_DEBUG(msg) codelve::utils::Logger::staticDebug(msg)
+#define LOG_INFO(msg) codelve::utils::Logger::staticInfo(msg)
+#define LOG_WARNING(msg) codelve::utils::Logger::staticWarning(msg)
+#define LOG_ERROR(msg) codelve::utils::Logger::staticError(msg)
+#define LOG_FATAL(msg) codelve::utils::Logger::staticFatal(msg)
+    } // namespace utils
+} // namespace codelve

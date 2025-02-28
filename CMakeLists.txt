@@ -1,67 +1,59 @@
-# CMakeLists.txt
-cmake_minimum_required(VERSION 3.16)
+# E:\CodeLve\CMakeLists.txt
+cmake_minimum_required(VERSION 3.15)
 project(CodeLve VERSION 0.1.0 LANGUAGES CXX)
 
 # Set C++ standard
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Set build type if not specified
-if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
+# Add Windows-specific compile options
+if(WIN32)
+    add_compile_definitions(WIN32 _WINDOWS)
 endif()
 
-# Output directories
+# Set output directories
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
-# Add include directories
+# Create a directory for external dependencies
+set(EXTERNAL_DIR ${CMAKE_SOURCE_DIR}/external)
+file(MAKE_DIRECTORY ${EXTERNAL_DIR})
+
+# Include directories
 include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}/src
-    ${CMAKE_CURRENT_SOURCE_DIR}/external
+    ${CMAKE_SOURCE_DIR}/src
+    ${EXTERNAL_DIR}
 )
 
-# Find required packages
-find_package(Threads REQUIRED)
-
-# Collect source files
+# Find source files
 file(GLOB_RECURSE SOURCES 
     "src/*.cpp"
 )
 
-# Define the executable
+# Main executable
 add_executable(codelve ${SOURCES})
 
-# Link libraries
-target_link_libraries(codelve PRIVATE
-    Threads::Threads
-)
-
-# Set Windows-specific properties
+# Link Windows libraries for the UI
 if(WIN32)
     target_link_libraries(codelve PRIVATE
-        shlwapi
+        comctl32
+        gdi32
+        user32
+        shell32
+        ole32
+        comdlg32
     )
-    # Set executable icon (will add later)
-    # set_target_properties(codelve PROPERTIES WIN32_EXECUTABLE TRUE)
 endif()
 
-# Installation
-install(TARGETS codelve DESTINATION bin)
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/resources/ 
-        DESTINATION resources)
-
-# Create directory for external dependencies
-add_custom_target(create_external_dir ALL
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_SOURCE_DIR}/external
-    COMMENT "Creating external directory for dependencies"
+# Install rules
+install(TARGETS codelve
+    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
 )
 
-# Add custom target for downloading dependencies (to be expanded later)
-add_custom_target(download_dependencies
-    COMMENT "Downloading dependencies"
+# Copy resources
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/resources/
+    DESTINATION bin/resources
 )
-
-# Add dependencies between targets
-add_dependencies(codelve create_external_dir)

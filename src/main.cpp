@@ -30,33 +30,33 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         
         // Initialize logger
         codelve::utils::Logger::initialize((appDir / "logs").string());
-        codelve::utils::Logger::log(codelve::utils::LogLevel::INFO, "Application starting");
+        codelve::utils::Logger::info("Application starting");
         
         // Create and initialize engine
-        codelve::core::Engine engine(configPath.string());
-        if (!engine.initialize()) {
-            codelve::utils::Logger::log(codelve::utils::LogLevel::ERROR, "Failed to initialize engine");
+        auto engine = std::make_shared<codelve::core::Engine>(configPath.string());
+        if (!engine->initialize()) {
+            codelve::utils::Logger::error("Failed to initialize engine");
             MessageBoxA(NULL, "Failed to initialize application. Please check the logs.", "Error", MB_OK | MB_ICONERROR);
             return 1;
         }
         
         // Run the application
-        int result = engine.run();
+        int result = engine->run();
         
         // Clean up
         CoUninitialize();
         
-        codelve::utils::Logger::log(codelve::utils::LogLevel::INFO, "Application exiting with code: " + std::to_string(result));
+        codelve::utils::Logger::info("Application exiting with code: " + std::to_string(result));
         return result;
         
     } catch (const std::exception& e) {
         std::string errorMsg = "Unhandled exception: " + std::string(e.what());
-        codelve::utils::Logger::log(codelve::utils::LogLevel::FATAL, errorMsg);
+        codelve::utils::Logger::error(errorMsg);
         MessageBoxA(NULL, errorMsg.c_str(), "Fatal Error", MB_OK | MB_ICONERROR);
         return 1;
     } catch (...) {
         std::string errorMsg = "Unknown unhandled exception";
-        codelve::utils::Logger::log(codelve::utils::LogLevel::FATAL, errorMsg);
+        codelve::utils::Logger::error(errorMsg);
         MessageBoxA(NULL, errorMsg.c_str(), "Fatal Error", MB_OK | MB_ICONERROR);
         return 1;
     }
