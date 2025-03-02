@@ -31,8 +31,8 @@ file(GLOB_RECURSE SOURCES
     "src/*.cpp"
 )
 
-# Main executable
-add_executable(codelve ${SOURCES})
+# Main executable - our new files are already added here
+add_executable(codelve ${SOURCES} "src/core/engine_shim.cpp" "src/ui/main_window_shim.cpp" "src/utils/logger_initialize.cpp" "src/core/engine_functions.cpp")
 
 # Link Windows libraries for the UI
 if(WIN32)
@@ -43,6 +43,7 @@ if(WIN32)
         shell32
         ole32
         comdlg32
+         riched20 
     )
 endif()
 

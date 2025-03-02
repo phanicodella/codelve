@@ -17,14 +17,16 @@ namespace codelve {
 
             static Config& getInstance();
 
+            // Make constructor and destructor public
+            Config();
+            ~Config();
+
             bool loadFromFile(const std::string& configFile);
             bool save();
             bool saveAs(const std::string& configFile);
 
             void set(const std::string& key, const ConfigValue& value);
-
             bool hasKey(const std::string& key) const;
-
             int getInt(const std::string& key, int defaultValue = 0) const;
             double getFloat(const std::string& key, double defaultValue = 0.0) const;
             bool getBool(const std::string& key, bool defaultValue = false) const;
@@ -32,8 +34,7 @@ namespace codelve {
             std::vector<std::string> getStringList(const std::string& key, const std::vector<std::string>& defaultValue = {}) const;
 
         private:
-            Config();
-            ~Config();
+            // Remove constructor and destructor from here
 
             ConfigMap data_;
             std::string configFile_;

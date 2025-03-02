@@ -39,6 +39,7 @@ public:
      * @param engine Shared engine instance
      */
     MainWindow(std::shared_ptr<utils::Config> config, std::shared_ptr<core::Engine> engine);
+    MainWindow(std::shared_ptr<utils::Config> config, core::Engine* engine);
     
     /**
      * Destructor.

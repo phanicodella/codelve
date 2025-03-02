@@ -45,6 +45,12 @@ namespace codelve {
             explicit Engine(const std::string& configPath);
 
             /**
+             * Constructor with config object.
+             * @param config Shared pointer to configuration
+             */
+            explicit Engine(std::shared_ptr<utils::Config> config);
+
+            /**
              * Destructor.
              */
             ~Engine();

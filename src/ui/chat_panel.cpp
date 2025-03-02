@@ -6,8 +6,7 @@
 #include <sstream>
 #include <regex>
 
-// Link richedit library
-#pragma comment(lib, "riched20.lib")
+
 
 namespace codelve {
     namespace ui {

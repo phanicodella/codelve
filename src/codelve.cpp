@@ -43,7 +43,7 @@ bool CodeLve::initialize() {
         return true;
     }
     catch (const std::exception& e) {
-        LOG_ERROR("Exception during initialization: {}", e.what());
+        LOG_ERROR(std::string("Exception during initialization: ") + e.what());
         return false;
     }
 }
@@ -56,7 +56,7 @@ int CodeLve::run() {
         return mainWindow_->run();
     }
     catch (const std::exception& e) {
-        LOG_ERROR("Exception during main loop: {}", e.what());
+        LOG_ERROR(std::string("Exception during main loop: ") + e.what());
         return 1;
     }
 }

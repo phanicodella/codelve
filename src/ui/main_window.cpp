@@ -1,4 +1,5 @@
 #include "main_window.h"
+#include "chat_panel.h"  
 #include "chat_panel.h"
 #include "file_browser.h"
 #include "../utils/config.h"
