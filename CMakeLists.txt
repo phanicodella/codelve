@@ -9,6 +9,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Add Windows-specific compile options
 if(WIN32)
     add_compile_definitions(WIN32 _WINDOWS)
+    # Set Windows subsystem
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS")
 endif()
 
 # Set output directories
@@ -31,8 +33,8 @@ file(GLOB_RECURSE SOURCES
     "src/*.cpp"
 )
 
-# Main executable - our new files are already added here
-add_executable(codelve ${SOURCES} "src/core/engine_shim.cpp" "src/ui/main_window_shim.cpp" "src/utils/logger_initialize.cpp" "src/core/engine_functions.cpp")
+# Main executable
+add_executable(codelve WIN32 ${SOURCES} "src/core/engine_shim.cpp" "src/ui/main_window_shim.cpp" "src/utils/logger_initialize.cpp" "src/core/engine_functions.cpp")
 
 # Link Windows libraries for the UI
 if(WIN32)
@@ -43,7 +45,6 @@ if(WIN32)
         shell32
         ole32
         comdlg32
-         riched20 
     )
 endif()
 
