@@ -1,3 +1,4 @@
+// E:\CodeLve\src\core\query_processor.cpp
 #include "query_processor.h"
 #include "context_manager.h"
 #include "../utils/config.h"
@@ -53,11 +54,15 @@ namespace codelve {
             // Check if this is a special command
             std::string command = extractCommand(rawQuery);
             if (!command.empty()) {
+                // Handle commands like /help, /clear, etc.
+                utils::Logger::staticLog(utils::LogLevel::INFO, "QueryProcessor: Processing command: " + command);
                 return command;
             }
 
             // Determine if this is a code-related query
             bool isCode = isCodebaseQuery(rawQuery);
+            utils::Logger::staticLog(utils::LogLevel::INFO,
+                "QueryProcessor: Query detected as " + std::string(isCode ? "code-related" : "general"));
 
             std::string formattedQuery;
             if (isCode) {
@@ -66,6 +71,7 @@ namespace codelve {
 
                 // Apply the code prompt template
                 formattedQuery = codePromptTemplate_;
+                // Replace template placeholders
                 size_t contextPos = formattedQuery.find("{context}");
                 if (contextPos != std::string::npos) {
                     formattedQuery.replace(contextPos, 9, context);
@@ -78,7 +84,6 @@ namespace codelve {
 
                 // Add specific instructions based on query type
                 formattedQuery += "\n" + formatInstructions(rawQuery);
-
             }
             else {
                 // Apply the general prompt template for non-code questions
@@ -88,11 +93,6 @@ namespace codelve {
                     formattedQuery.replace(queryPos, 7, rawQuery);
                 }
             }
-
-            utils::Logger& logger = utils::Logger::getInstance();
-            logger.log(utils::LogLevel::INFO,
-                "QueryProcessor: Processed query, detected as " +
-                std::string(isCode ? "code-related" : "general"));
 
             return formattedQuery;
         }
@@ -190,6 +190,5 @@ namespace codelve {
 
             return instructions.str();
         }
-
     }
 } // namespace codelve::core

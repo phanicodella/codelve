@@ -5,11 +5,14 @@
 #include <windowsx.h>
 #include <commctrl.h>
 #include <shlwapi.h>
+#include <shlobj.h>  // Added for SHBrowseForFolder, etc.
 #include <filesystem>
 #include <algorithm>
 
 // Link shlwapi library
 #pragma comment(lib, "shlwapi.lib")
+// Link shell32 library for SHBrowseForFolder
+#pragma comment(lib, "shell32.lib")
 
 namespace fs = std::filesystem;
 
@@ -17,17 +20,17 @@ namespace codelve {
     namespace ui {
 
         // Control IDs
-#define ID_PATH_LABEL    2001
-#define ID_TREE_VIEW     2002
-#define ID_OPEN_BTN      2003
-#define ID_REFRESH_BTN   2004
+        static constexpr int ID_PATH_LABEL = 2001;
+        static constexpr int ID_TREE_VIEW = 2002;
+        static constexpr int ID_OPEN_BTN = 2003;
+        static constexpr int ID_REFRESH_BTN = 2004;
 
-// Image list indices
-#define IDX_FOLDER       0
-#define IDX_FILE         1
-#define IDX_CODE_FILE    2
+        // Image list indices
+        static constexpr int IDX_FOLDER = 0;
+        static constexpr int IDX_FILE = 1;
+        static constexpr int IDX_CODE_FILE = 2;
 
-// Static member initialization
+        // Static member initialization
         LRESULT CALLBACK FileBrowser::BrowserProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
             FileBrowser* browser = nullptr;
 
@@ -67,6 +70,11 @@ namespace codelve {
                     NMHDR* nmhdr = reinterpret_cast<NMHDR*>(lParam);
                     if (nmhdr->idFrom == ID_TREE_VIEW) {
                         if (nmhdr->code == TVN_SELCHANGED) {
+                            NMTREEVIEW* nmTreeView = reinterpret_cast<NMTREEVIEW*>(lParam);
+                            browser->handleItemSelect(nmTreeView->itemNew.hItem);
+                            return 0;
+                        }
+                        else if (nmhdr->code == TVN_ITEMEXPANDING) {
                             NMTREEVIEW* nmTreeView = reinterpret_cast<NMTREEVIEW*>(lParam);
                             browser->handleItemSelect(nmTreeView->itemNew.hItem);
                             return 0;
@@ -277,22 +285,25 @@ namespace codelve {
                 SHFILEINFO sfi = { 0 };
 
                 // Get folder icon
-                SHGetFileInfo("C:\\", FILE_ATTRIBUTE_DIRECTORY, &sfi, sizeof(sfi),
-                    SHGFI_ICON | SHGFI_SMALLICON | SHGFI_USEFILEATTRIBUTES);
-                folderIconIndex_ = ImageList_AddIcon(imageList_, sfi.hIcon);
-                DestroyIcon(sfi.hIcon);
+                if (SHGetFileInfo("C:\\", FILE_ATTRIBUTE_DIRECTORY, &sfi, sizeof(sfi),
+                    SHGFI_ICON | SHGFI_SMALLICON | SHGFI_USEFILEATTRIBUTES) && sfi.hIcon) {
+                    folderIconIndex_ = ImageList_AddIcon(imageList_, sfi.hIcon);
+                    DestroyIcon(sfi.hIcon);
+                }
 
                 // Get generic file icon
-                SHGetFileInfo("dummy.txt", FILE_ATTRIBUTE_NORMAL, &sfi, sizeof(sfi),
-                    SHGFI_ICON | SHGFI_SMALLICON | SHGFI_USEFILEATTRIBUTES);
-                fileIconIndex_ = ImageList_AddIcon(imageList_, sfi.hIcon);
-                DestroyIcon(sfi.hIcon);
+                if (SHGetFileInfo("dummy.txt", FILE_ATTRIBUTE_NORMAL, &sfi, sizeof(sfi),
+                    SHGFI_ICON | SHGFI_SMALLICON | SHGFI_USEFILEATTRIBUTES) && sfi.hIcon) {
+                    fileIconIndex_ = ImageList_AddIcon(imageList_, sfi.hIcon);
+                    DestroyIcon(sfi.hIcon);
+                }
 
                 // Get code file icon
-                SHGetFileInfo("dummy.cpp", FILE_ATTRIBUTE_NORMAL, &sfi, sizeof(sfi),
-                    SHGFI_ICON | SHGFI_SMALLICON | SHGFI_USEFILEATTRIBUTES);
-                codeFileIconIndex_ = ImageList_AddIcon(imageList_, sfi.hIcon);
-                DestroyIcon(sfi.hIcon);
+                if (SHGetFileInfo("dummy.cpp", FILE_ATTRIBUTE_NORMAL, &sfi, sizeof(sfi),
+                    SHGFI_ICON | SHGFI_SMALLICON | SHGFI_USEFILEATTRIBUTES) && sfi.hIcon) {
+                    codeFileIconIndex_ = ImageList_AddIcon(imageList_, sfi.hIcon);
+                    DestroyIcon(sfi.hIcon);
+                }
 
                 // Assign image list to tree view
                 TreeView_SetImageList(treeView_, imageList_, TVSIL_NORMAL);
@@ -359,7 +370,7 @@ namespace codelve {
             TreeView_Expand(treeView_, rootItem, TVE_EXPAND);
         }
 
-        void FileBrowser::addDirectoryToTree(HTREEITEM parentItem, const std::string& path) {
+          void FileBrowser::addDirectoryToTree(HTREEITEM parentItem, const std::string& path) {
             try {
                 // Get sorted entries
                 std::vector<fs::directory_entry> dirEntries;
@@ -398,7 +409,7 @@ namespace codelve {
                     tvis.item.mask = TVIF_TEXT | TVIF_IMAGE | TVIF_SELECTEDIMAGE | TVIF_PARAM | TVIF_CHILDREN;
                     tvis.item.iImage = folderIconIndex_;
                     tvis.item.iSelectedImage = folderIconIndex_;
-                    tvis.item.cChildren = 1;  // Assume it has children for now
+                    tvis.item.cChildren = 1;  // Always has at least one child (even if just a placeholder)
 
                     std::string entryPath = entry.path().string();
                     std::string displayName = entry.path().filename().string();
@@ -406,7 +417,17 @@ namespace codelve {
                     tvis.item.pszText = const_cast<LPSTR>(displayName.c_str());
                     tvis.item.lParam = reinterpret_cast<LPARAM>(new std::string(entryPath));
 
-                    TreeView_InsertItem(treeView_, &tvis);
+                    HTREEITEM folderItem = TreeView_InsertItem(treeView_, &tvis);
+
+                    // Add a placeholder item so the expand button appears
+                    TV_INSERTSTRUCT placeholderTvis = { 0 };
+                    placeholderTvis.hParent = folderItem;
+                    placeholderTvis.hInsertAfter = TVI_LAST;
+                    placeholderTvis.item.mask = TVIF_TEXT;
+                    placeholderTvis.item.pszText = const_cast<LPSTR>("");
+                    placeholderTvis.item.lParam = 0;  // Zero lParam marks it as a placeholder
+
+                    TreeView_InsertItem(treeView_, &placeholderTvis);
                 }
 
                 // Then add files
@@ -439,7 +460,6 @@ namespace codelve {
                     "FileBrowser: Error populating tree: " + std::string(e.what()));
             }
         }
-
         int FileBrowser::getIconIndexForFile(const std::string& filePath) {
             // Get file extension
             std::string ext = fs::path(filePath).extension().string();
@@ -457,7 +477,6 @@ namespace codelve {
 
             return fileIconIndex_;
         }
-
         std::string FileBrowser::getItemPath(HTREEITEM item) const {
             if (!treeView_ || item == NULL) {
                 return "";
@@ -477,6 +496,7 @@ namespace codelve {
             return "";
         }
 
+       
         void FileBrowser::handleItemSelect(HTREEITEM item) {
             std::string path = getItemPath(item);
 
@@ -488,21 +508,17 @@ namespace codelve {
                 tvi.hItem = item;
 
                 if (TreeView_GetItem(treeView_, &tvi) && tvi.cChildren == 1) {
-                    // This directory has a dummy child item - expand it
-                    // Check if it has real children first
+                    // This directory has a dummy child item or might need expansion
                     HTREEITEM childItem = TreeView_GetChild(treeView_, item);
                     if (childItem != NULL) {
-                        // Get the text of the child item
-                        char buffer[MAX_PATH] = { 0 };  // Initialize the buffer
-                        TVITEM ctvItem = { 0 };  // Initialize the struct
-                        ctvItem.mask = TVIF_TEXT | TVIF_PARAM;
-                        ctvItem.hItem = childItem;
-                        ctvItem.pszText = buffer;
-                        ctvItem.cchTextMax = MAX_PATH;
+                        // Get the item info of the child to see if it's a placeholder
+                        TV_ITEM childTvi = { 0 };
+                        childTvi.mask = TVIF_PARAM;
+                        childTvi.hItem = childItem;
 
-                        if (TreeView_GetItem(treeView_, &ctvItem)) {
-                            // If this is just a placeholder, delete it and add real children
-                            if (ctvItem.lParam == 0) {
+                        if (TreeView_GetItem(treeView_, &childTvi)) {
+                            if (childTvi.lParam == 0) {
+                                // This is a placeholder - delete it and add real children
                                 TreeView_DeleteItem(treeView_, childItem);
                                 addDirectoryToTree(item, path);
                             }
@@ -520,6 +536,9 @@ namespace codelve {
         void FileBrowser::handleOpenButtonClick() {
             std::string selectedPath = getSelectedFile();
             if (!selectedPath.empty()) {
+                utils::Logger::staticLog(utils::LogLevel::INFO,
+                    "FileBrowser: Opening " + selectedPath);
+
                 if (fs::is_directory(selectedPath)) {
                     // Set as new root
                     setRootDirectory(selectedPath);
@@ -529,6 +548,23 @@ namespace codelve {
                     if (fileSelectionCallback_) {
                         fileSelectionCallback_(selectedPath);
                     }
+                }
+            }
+            else {
+                // If no file is selected, open a directory browser dialog
+                BROWSEINFOA bi = { 0 };  // Use BROWSEINFOA for ANSI strings
+                bi.lpszTitle = "Select Directory";
+                bi.ulFlags = BIF_RETURNONLYFSDIRS | BIF_NEWDIALOGSTYLE;
+
+                LPITEMIDLIST pidl = SHBrowseForFolderA(&bi);  // Use SHBrowseForFolderA for ANSI
+                if (pidl != NULL) {
+                    char path[MAX_PATH] = { 0 };  // Initialize the buffer
+                    if (SHGetPathFromIDListA(pidl, path)) {  // Use SHGetPathFromIDListA for ANSI
+                        setRootDirectory(path);
+                    }
+
+                    // Free memory
+                    CoTaskMemFree(pidl);
                 }
             }
         }

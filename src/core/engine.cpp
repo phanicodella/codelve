@@ -1,3 +1,4 @@
+// E:\CodeLve\src\core\engine.cpp
 #include "engine.h"
 #include "context_manager.h"
 #include "query_processor.h"
@@ -87,6 +88,24 @@ namespace codelve {
             }
         }
 
+        int Engine::run() {
+            if (!mainWindow_) {
+                utils::Logger& logger = utils::Logger::getInstance();
+                logger.log(utils::LogLevel::ERROR, "Engine: No UI available to run");
+                return 1;
+            }
+
+            try {
+                return mainWindow_->run();
+            }
+            catch (const std::exception& e) {
+                utils::Logger& logger = utils::Logger::getInstance();
+                logger.log(utils::LogLevel::ERROR, "Engine: Error during execution: " + std::string(e.what()));
+                setStatus("Runtime error: " + std::string(e.what()), true);
+                return 1;
+            }
+        }
+
         bool Engine::loadCodebase(const std::string& directoryPath, ProgressCallback callback) {
             if (!scanner_) {
                 utils::Logger& logger = utils::Logger::getInstance();
@@ -107,12 +126,12 @@ namespace codelve {
             setStatus("Loading codebase from: " + directoryPath);
 
             // Show progress dialog in UI
-            HWND progressDialogHandle = nullptr;
+            // FIX: Remove the local variable that shadows the class member
             if (mainWindow_) {
                 progressDialogHandle = mainWindow_->showProgressDialog("Loading Codebase", "Scanning files...");
             }
 
-            auto scanCallback = [this, callback, progressDialogHandle](const std::string& stage, float progress, const std::string& message) {
+            auto scanCallback = [this, callback](const std::string& stage, float progress, const std::string& message) {
                 if (callback) {
                     callback(stage, progress, message);
                 }
@@ -124,7 +143,8 @@ namespace codelve {
 
             scanner_->setProgressCallback(scanCallback);
 
-            std::thread([this, directoryPath, progressDialogHandle]() {
+            // FIX: Use correct capture for the query variable
+            std::thread([this, directoryPath]() {
                 try {
                     auto scannedCode = scanner_->scanDirectory(directoryPath);
 
@@ -175,6 +195,136 @@ namespace codelve {
 
             utils::Logger& logger = utils::Logger::getInstance();
             logger.log(utils::LogLevel::INFO, "Engine: Components set up");
+        }
+
+        void Engine::processQuery(const std::string& query) {
+            utils::Logger& logger = utils::Logger::getInstance();
+            logger.log(utils::LogLevel::INFO, "Engine: Processing query: " + query);
+
+            if (query.empty()) {
+                return;
+            }
+
+            setStatus("Processing query...");
+
+            // Process the query with the QueryProcessor
+            std::string formattedQuery = queryProcessor_->processQuery(query);
+
+            // Run inference with the LLM
+            if (!llmInterface_->isInitialized()) {
+                logger.log(utils::LogLevel::INFO, "Engine: Initializing LLM on demand");
+                if (!llmInterface_->initialize()) {
+                    logger.log(utils::LogLevel::ERROR, "Engine: Failed to initialize LLM");
+                    if (mainWindow_) {
+                        mainWindow_->displayResponse("Error: Failed to initialize language model. Please check logs.");
+                    }
+                    setStatus("Failed to initialize language model", true);
+                    return;
+                }
+            }
+
+            // Create streaming response callback
+            // FIX: Use explicit capture for the query variable
+            auto streamingCallback = [this, query](const std::string& token, bool isFinished) {
+                static std::string fullResponse;
+                fullResponse += token;
+
+                if (mainWindow_) {
+                    mainWindow_->displayResponse(fullResponse);
+                }
+
+                if (isFinished) {
+                    // Store in conversation history
+                    if (contextManager_) {
+                        contextManager_->addToHistory(query, fullResponse);
+                    }
+
+                    setStatus("Ready");
+                    fullResponse.clear();
+                }
+                };
+
+            // Set inference parameters
+            llm::InferenceParams params;
+            // FIX: Use an explicit cast to avoid the double to float conversion warning
+            params.temperature = static_cast<float>(config_->getFloat("llm.temperature", 0.7f));
+            params.maxTokens = config_->getInt("llm.max_tokens", 2048);
+
+            // Run inference with streaming
+            // FIX: Pass the callback correctly
+            if (!llmInterface_->runInferenceStreaming(formattedQuery, streamingCallback, params)) {
+                logger.log(utils::LogLevel::ERROR, "Engine: Inference failed");
+                if (mainWindow_) {
+                    mainWindow_->displayResponse("Error: Failed to process query. Please try again.");
+                }
+                setStatus("Inference failed", true);
+            }
+        }
+
+        void Engine::handleFileSelection(const std::string& filePath) {
+            utils::Logger& logger = utils::Logger::getInstance();
+            logger.log(utils::LogLevel::INFO, "Engine: File selected: " + filePath);
+
+            // Do something with the selected file
+            // For example, display it in the UI or analyze it
+            showFile(filePath);
+        }
+
+        bool Engine::showFile(const std::string& filePath) {
+            if (filePath.empty() || !fs::exists(filePath)) {
+                utils::Logger& logger = utils::Logger::getInstance();
+                logger.log(utils::LogLevel::ERROR, "Engine: Invalid file path: " + filePath);
+                return false;
+            }
+
+            try {
+                // Read file content
+                std::ifstream file(filePath);
+                if (!file.is_open()) {
+                    utils::Logger& logger = utils::Logger::getInstance();
+                    logger.log(utils::LogLevel::ERROR, "Engine: Failed to open file: " + filePath);
+                    return false;
+                }
+
+                std::stringstream buffer;
+                buffer << file.rdbuf();
+                std::string content = buffer.str();
+
+                // Display file in UI
+                if (mainWindow_) {
+                    // This part depends on how you want to display files
+                    // For now, we'll just show it in the chat panel
+                    std::string fileInfo = "File: " + filePath + "\n\n";
+                    mainWindow_->displayResponse(fileInfo + content);
+                }
+
+                return true;
+            }
+            catch (const std::exception& e) {
+                utils::Logger& logger = utils::Logger::getInstance();
+                logger.log(utils::LogLevel::ERROR, "Engine: Error showing file: " + std::string(e.what()));
+                return false;
+            }
+        }
+
+        std::string Engine::getStatus() const {
+            return statusMessage_;
+        }
+
+        void Engine::setStatus(const std::string& message, bool isError) {
+            statusMessage_ = message;
+
+            if (mainWindow_) {
+                mainWindow_->setStatusMessage(message, isError);
+            }
+
+            utils::Logger& logger = utils::Logger::getInstance();
+            logger.log(isError ? utils::LogLevel::ERROR : utils::LogLevel::INFO,
+                "Engine: Status set to: " + message);
+        }
+
+        std::shared_ptr<utils::Config> Engine::getConfig() const {
+            return config_;
         }
 
     }
